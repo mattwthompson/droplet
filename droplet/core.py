@@ -31,8 +31,15 @@ def calc_contact_angle(trj, z_surf, z_max, r_range, n_bins, trim_z, rho_cutoff):
 
     Returns
     -------
-    theta : float
-        contact angle of droplet
+    droplet : dict
+        theta : float
+            Contact angle of droplet in degrees
+        heatmap : np.ndarray
+            Density of fluid in droplet as a function of `r` and `z`
+        r_edges : np.ndarray
+            Bins in the `r` dimension of the density heatmap
+        z_edges : np.ndarray
+            Bins in the `z` dimension of the density heatmap
     """
 
     # Transform coordinates from `x,y,z` to `r,z`
@@ -84,7 +91,14 @@ def calc_contact_angle(trj, z_surf, z_max, r_range, n_bins, trim_z, rho_cutoff):
     sol = least_squares(_fitting_func, r_range[1], args=(fit_x, fit_y, h))
     R = sol.x
     theta = np.arccos((R-h)/R) * 180 / np.pi
-    return theta, H, r_edges, z_edges 
+
+    drop = dict()
+    drop['theta'] = theta
+    drop['heatmap'] = H
+    drop['r_edges'] = r_edges
+    drop['z_edges'] = z_edges
+
+    return drop
 
 def _fitting_func(r, fit_x, fit_y, h):
     return np.sqrt(np.square(fit_x) + np.square(fit_y + r - h)) - r
