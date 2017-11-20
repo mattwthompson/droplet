@@ -61,23 +61,7 @@ def calc_contact_angle(trj, z_surf, z_max, r_range, n_bins, trim_z, rho_cutoff):
     H=np.divide(H, 2*r_edges[1:] + dr)
     H=np.divide(H, len(trj))
 
-    # Find coordinates of droplet edge
-    fit_x = []
-    fit_y = []
-
-    for i, r in enumerate(r_edges[:-1]):
-        if i < 1 :
-            continue
-        else:
-            for j, z in reversed(list(enumerate(z_edges[:-1]))):
-                freq=H[j, i]
-                if freq > rho_cutoff:
-                    fit_x.append(r)
-                    fit_y.append(z)
-                    break
-
-    fit_x = np.array(fit_x)
-    fit_y = np.array(fit_y)
+    fit_x, fit_y = _find_edge(H, r_edges, z_edges, direction)
 
     vals = np.where(fit_y > trim_z)
     fit_x = fit_x[vals]
@@ -99,6 +83,44 @@ def calc_contact_angle(trj, z_surf, z_max, r_range, n_bins, trim_z, rho_cutoff):
     drop['z_edges'] = z_edges
 
     return drop
+
+def _find_edge(H, r_edges, z_edges, direction):
+    """Find the edge of a droplet"""
+    if direction not in ['top', 'side', 'both']:
+        raise ValueError("`direction` must be one of "
+                         "`top`, `side`, or `both`")
+
+    fit_x = []
+    fit_y = []
+
+    if direction in ['top', 'both']:
+        for i, r in enumerate(r_edges[:-1]):
+            if i < 1:
+                continue
+            else:
+                for j, z in reversed(list(enumerate(z_edges[:-1]))):
+                    freq = H[j, i]
+                    if freq > rho_cutoff:
+                        fit_x.append(r)
+                        fit_y.append(z)
+                        break
+
+    if direction in ['side', 'both']:
+        for j, z in enumerate(z_edges[:-1]):
+            if j < 1:
+                continue
+            else:
+                for i, r in reversed(list(enumerate(r_edges[:-1]))):
+                    freq = H[j, i]
+                    if freq > rho_cutoff:
+                        fit_x.append(r)
+                        fit_y.append(z)
+                        break
+
+    fit_x = np.array(fit_x)
+    fit_y = np.array(fit_y)
+
+    return fit_x, fit_y
 
 def _fitting_func(r, fit_x, fit_y, h):
     return np.sqrt(np.square(fit_x) + np.square(fit_y + r - h)) - r
