@@ -4,7 +4,8 @@ import matplotlib.pyplot as plt
 from scipy.optimize import least_squares
 
 
-def calc_contact_angle(trj, z_surf, z_max, r_range, n_bins, trim_z, rho_cutoff):
+def calc_contact_angle(trj, z_surf, z_max, r_range, n_bins,
+        trim_z, rho_cutoff, direction):
     """
     Calculate the contact angle of a droplet
 
@@ -61,7 +62,7 @@ def calc_contact_angle(trj, z_surf, z_max, r_range, n_bins, trim_z, rho_cutoff):
     H=np.divide(H, 2*r_edges[1:] + dr)
     H=np.divide(H, len(trj))
 
-    fit_x, fit_y = _find_edge(H, r_edges, z_edges, direction)
+    fit_x, fit_y = _find_edge(H, r_edges, z_edges, direction, rho_cutoff)
 
     vals = np.where(fit_y > trim_z)
     fit_x = fit_x[vals]
@@ -84,7 +85,7 @@ def calc_contact_angle(trj, z_surf, z_max, r_range, n_bins, trim_z, rho_cutoff):
 
     return drop
 
-def _find_edge(H, r_edges, z_edges, direction):
+def _find_edge(H, r_edges, z_edges, direction, rho_cutoff):
     """Find the edge of a droplet"""
     if direction not in ['top', 'side', 'both']:
         raise ValueError("`direction` must be one of "
