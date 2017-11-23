@@ -46,7 +46,7 @@ def calc_contact_angle(trj, z_surf, z_max, r_range, n_bins,
     com = md.compute_center_of_mass(trj)
     _r = np.transpose(np.sqrt(np.square(np.transpose(trj.xyz[:, :, 0])-com[:, 0]) +
                               np.square(np.transpose(trj.xyz[:, :, 1])-com[:, 1])))
-    _z = trj.xyz[:,:,2]-z_surf
+    _z = trj.xyz[:, :, 2]-z_surf
 
     r = np.array(_r).flatten()
     z = np.array(_z).flatten()
@@ -54,20 +54,18 @@ def calc_contact_angle(trj, z_surf, z_max, r_range, n_bins,
     # Generate 2-D histogram of droplet
     H, r_edges, z_edges = np.histogram2d(r, z, bins=(np.linspace(r_range[0], r_range[1], n_bins),
                                                      np.linspace(0, z_max, n_bins)))
-    H=H.T
+    H = H.T
     dz = z_max/n_bins
     dr = (r_range[1]-r_range[0])/n_bins
-    H=np.divide(H, np.pi * dz * dr )
-    H=np.divide(H, 2*r_edges[1:] + dr)
-    H=np.divide(H, len(trj))
+    H = np.divide(H, np.pi * dz * dr)
+    H = np.divide(H, 2 * r_edges[1:] + dr)
+    H = np.divide(H, len(trj))
 
     fit_x, fit_y = _find_edge(H, r_edges, z_edges, direction, rho_cutoff)
 
     vals = np.where(fit_y > trim_z)
     fit_x = fit_x[vals]
     fit_y = fit_y[vals]
-    
-
 
     h = np.max(fit_y)
 
@@ -83,6 +81,7 @@ def calc_contact_angle(trj, z_surf, z_max, r_range, n_bins,
     drop['z_edges'] = z_edges
 
     return drop
+
 
 def _find_edge(H, r_edges, z_edges, direction, rho_cutoff):
     """Find the edge of a droplet"""
@@ -121,6 +120,7 @@ def _find_edge(H, r_edges, z_edges, direction, rho_cutoff):
     fit_y = np.array(fit_y)
 
     return fit_x, fit_y
+
 
 def _fitting_func(r, fit_x, fit_y, h):
     return np.sqrt(np.square(fit_x) + np.square(fit_y + r - h)) - r
