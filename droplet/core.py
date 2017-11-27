@@ -22,6 +22,8 @@ def calc_contact_angle(trj, z_surf, z_max, r_range, n_bins,
         Number of bins to use in histgram
     trim_z : float
         Height off surface to ignore in fit
+    trim_r : float
+        Distance from center of droplet to ignore in fit
     rho_cutoff : float
         Atomic number density (in number/nm^3) that specifies the edge of
         the droplet. For most systems, the bulk atomistic density is an
@@ -67,7 +69,8 @@ def calc_contact_angle(trj, z_surf, z_max, r_range, n_bins,
 
     fit_r, fit_z = _find_edge(H, r_edges, z_edges, direction, rho_cutoff)
 
-    vals = np.where(fit_z > trim_z)
+    vals = np.intersect1d(np.where(fit_z > trim_z),
+            np.where(fit_r > trim_r))
     fit_r = fit_r[vals]
     fit_z = fit_z[vals]
 
