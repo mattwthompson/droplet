@@ -23,11 +23,15 @@ def calc_contact_angle(trj, z_surf, z_max, r_range, n_bins,
     trim_z : float
         Height off surface to ignore in fit
     rho_cutoff : float
-        Density (in number/nm^3) that specifies the edge of the droplet. For
-        most systems, the bulk density is an appropriate value.
+        Atomic number density (in number/nm^3) that specifies the edge of
+        the droplet. For most systems, the bulk atomistic density is an
+        appropriate value.
     r0 : float
         Initial guess of droplet size. If None, will be set to half the width
         of `r_range`.
+    direction : str
+        Direction to consider in fitting the edge of the droplet. Must be one
+        of `top`, `bottom`, or `both`.
 
     Returns
     -------
