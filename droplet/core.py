@@ -61,16 +61,16 @@ def calc_contact_angle(trj, z_surf, z_max, r_range, n_bins,
     H = np.divide(H, 2 * r_edges[1:] + dr)
     H = np.divide(H, len(trj))
 
-    fit_x, fit_y = _find_edge(H, r_edges, z_edges, direction, rho_cutoff)
+    fit_r, fit_z = _find_edge(H, r_edges, z_edges, direction, rho_cutoff)
 
-    vals = np.where(fit_y > trim_z)
-    fit_x = fit_x[vals]
-    fit_y = fit_y[vals]
+    vals = np.where(fit_z > trim_z)
+    fit_r = fit_r[vals]
+    fit_z = fit_z[vals]
 
-    h = np.max(fit_y)
+    h = np.max(fit_z)
 
     # Calculate contact angle from fit of sphere to droplet
-    sol = least_squares(_fitting_func, r_range[1], args=(fit_x, fit_y, h))
+    sol = least_squares(_fitting_func, r_range[1], args=(fit_r, fit_z, h))
     R = sol.x
     theta = np.arccos((R-h)/R) * 180 / np.pi
 
@@ -79,6 +79,8 @@ def calc_contact_angle(trj, z_surf, z_max, r_range, n_bins,
     drop['heatmap'] = H
     drop['r_edges'] = r_edges
     drop['z_edges'] = z_edges
+    drop['fit_r'] = fit_r
+    drop['fit_z'] = fit_z
 
     return drop
 
@@ -89,8 +91,8 @@ def _find_edge(H, r_edges, z_edges, direction, rho_cutoff):
         raise ValueError("`direction` must be one of "
                          "`top`, `side`, or `both`")
 
-    fit_x = []
-    fit_y = []
+    fit_r = []
+    fit_z = []
 
     if direction in ['top', 'both']:
         for i, r in enumerate(r_edges[:-1]):
@@ -100,8 +102,8 @@ def _find_edge(H, r_edges, z_edges, direction, rho_cutoff):
                 for j, z in reversed(list(enumerate(z_edges[:-1]))):
                     freq = H[j, i]
                     if freq > rho_cutoff:
-                        fit_x.append(r)
-                        fit_y.append(z)
+                        fit_r.append(r)
+                        fit_z.append(z)
                         break
 
     if direction in ['side', 'both']:
@@ -112,15 +114,15 @@ def _find_edge(H, r_edges, z_edges, direction, rho_cutoff):
                 for i, r in reversed(list(enumerate(r_edges[:-1]))):
                     freq = H[j, i]
                     if freq > rho_cutoff:
-                        fit_x.append(r)
-                        fit_y.append(z)
+                        fit_r.append(r)
+                        fit_z.append(z)
                         break
 
-    fit_x = np.array(fit_x)
-    fit_y = np.array(fit_y)
+    fit_r = np.array(fit_r)
+    fit_z = np.array(fit_z)
 
-    return fit_x, fit_y
+    return fit_r, fit_z
 
 
-def _fitting_func(r, fit_x, fit_y, h):
-    return np.sqrt(np.square(fit_x) + np.square(fit_y + r - h)) - r
+def _fitting_func(r, fit_r, fit_z, h):
+    return np.sqrt(np.square(fit_r) + np.square(fit_z + r - h)) - r
