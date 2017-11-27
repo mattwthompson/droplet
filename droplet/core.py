@@ -4,7 +4,7 @@ from scipy.optimize import least_squares
 
 
 def calc_contact_angle(trj, z_surf, z_max, r_range, n_bins,
-        trim_z, rho_cutoff, direction):
+        trim_z, trim_r, rho_cutoff, direction):
     """
     Calculate the contact angle of a droplet
 
