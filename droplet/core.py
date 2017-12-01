@@ -1,6 +1,7 @@
 import mdtraj as md
 import numpy as np
 from scipy.optimize import least_squares
+import matplotlib.pyplot as plt
 
 
 def calc_contact_angle(trj, z_surf, z_max, r_range, n_bins,
@@ -46,6 +47,10 @@ def calc_contact_angle(trj, z_surf, z_max, r_range, n_bins,
             Bins in the `r` dimension of the density heatmap
         z_edges : np.ndarray
             Bins in the `z` dimension of the density heatmap
+        fit_r   : np.ndarray
+            Fitted values in the `r` dimension
+        fit_z   : np.ndarray
+            Fitted values in the `z` dimension
     """
 
     # Transform coordinates from `x,y,z` to `r,z`
@@ -133,3 +138,134 @@ def _find_edge(H, r_edges, z_edges, direction, rho_cutoff):
 
 def _fitting_func(r, fit_r, fit_z, h):
     return np.sqrt(np.square(fit_r) + np.square(fit_z + r - h)) - r
+
+
+def plot_heatmap(droplet, xlim, ylim, fit=False):
+    """
+    Plot the heat map of a droplet
+
+    Arguments
+    ---------
+    droplet : dict
+        theta : float
+            Contact angle of droplet in degrees
+        heatmap : np.ndarray
+            Density of fluid in droplet as a function of `r` and `z`
+        r_edges : np.ndarray
+            Bins in the `r` dimension of the density heatmap
+        z_edges : np.ndarray
+            Bins in the `z` dimension of the density heatmap
+        fit_r   : np.ndarray
+            Fitted values in the `r` dimension
+        fit_z   : np.ndarray
+            Fitted values in the `z` dimension
+    x_lim   : tuple
+        Minimum and maximum values of x-axis
+    y_lim   : tuple
+        Minimum and maximum values of y-axis    
+    fit     : bool
+        Option to plot fitted line on heatmap
+    
+    Returns
+    -------
+    fig     : matplotlib.figure 
+        Matplotlib figure object
+    axs     : matplotlib.axes.Axes
+        Matplotlib axes object
+    """
+
+    X, Y = np.meshgrid(droplet['r_edges'], droplet['z_edges'])
+    fig, axs = plt.subplots()
+    axs.pcolormesh(X, Y, droplet['heatmap'], cmap='Blues')
+    if fit:
+        fig, axs = _plot_fit_line(fig, axs, droplet['fit_r'], droplet['fit_z'])
+
+    axs.set_xlim(xlim)
+    axs.set_ylim(ylim)
+    axs.set_xlabel('r')
+    axs.set_ylabel('z')
+    return [fig, axs]
+
+
+def _plot_fit_line(fig, axs, fit_r, fit_z):
+    axs.plot(fit_r, fit_z, c='k')
+    return [fig, axs]
+
+
+def plot_r_density(droplet, xlim):
+    """
+    Plot density vs r of a droplet
+
+    Arguments
+    ---------
+    droplet : dict
+        theta : float
+            Contact angle of droplet in degrees
+        heatmap : np.ndarray
+            Density of fluid in droplet as a function of `r` and `z`
+        r_edges : np.ndarray
+            Bins in the `r` dimension of the density heatmap
+        z_edges : np.ndarray
+            Bins in the `z` dimension of the density heatmap
+        fit_r   : np.ndarray
+            Fitted values in the `r` dimension
+        fit_z   : np.ndarray
+            Fitted values in the `z` dimension
+    x_lim   : tuple
+        Minimum and maximum values of x-axis
+    
+    Returns
+    -------
+    fig     : matplotlib.figure 
+        Matplotlib figure object
+    axs     : matplotlib.axes.Axes
+        Matplotlib axes object
+    """
+
+    fig, axs = plt.subplots()
+    axs.plot(droplet['r_edges'][:-1], np.sum(droplet['heatmap'],axis=0))
+
+    axs.set_xlim(xlim)
+    axs.set_xlabel('r')
+    axs.set_ylabel('density')
+    return [fig,axs]
+
+
+def plot_z_density(droplet, xlim):
+    """
+    Plot density vs z of a droplet
+
+    Arguments
+    ---------
+    droplet : dict
+        theta : float
+            Contact angle of droplet in degrees
+        heatmap : np.ndarray
+            Density of fluid in droplet as a function of `r` and `z`
+        r_edges : np.ndarray
+            Bins in the `r` dimension of the density heatmap
+        z_edges : np.ndarray
+            Bins in the `z` dimension of the density heatmap
+        fit_r   : np.ndarray
+            Fitted values in the `r` dimension
+        fit_z   : np.ndarray
+            Fitted values in the `z` dimension
+    x_lim   : tuple
+        Minimum and maximum values of x-axis
+    
+    Returns
+    -------
+    fig     : matplotlib.figure 
+        Matplotlib figure object
+    axs     : matplotlib.axes.Axes
+        Matplotlib axes object
+    """
+
+    fig, axs = plt.subplots()
+    axs.plot(droplet['z_edges'][:-1], np.sum(droplet['heatmap'],axis=1))
+
+    axs.set_xlim(xlim)
+    axs.set_xlabel('z')
+    axs.set_ylabel('density')
+    return [fig,axs]
+
