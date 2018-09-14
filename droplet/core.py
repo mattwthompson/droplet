@@ -71,6 +71,8 @@ def calc_contact_angle(trj, z_surf, z_max, r_range, n_bins,
 
     vals = np.intersect1d(np.where(fit_z > trim_z),
             np.where(fit_r > trim_r))
+    if vals.size == 0:
+        raise ValueError('Malformed droplet, all atoms are below `z_trim`')
     fit_r = fit_r[vals]
     fit_z = fit_z[vals]
 
